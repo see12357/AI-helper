@@ -31,22 +31,39 @@ An educational Retrieval-Augmented Generation (RAG) assistant built with:
 └── .env                # Environment variables
 ```
 
-## Setup
+## Setup (Установка и запуск)
 
-1. Clone the repository
-2. Install dependencies:
+1. Клонируйте репозиторий:
+   ```bash
+   git clone <URL>
+   cd educational-rag-assistant
+   ```
+
+2. Создайте и активируйте виртуальное окружение (venv):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Для Mac/Linux
+   # Или для Windows: venv\Scripts\activate
+   ```
+
+3. Установите зависимости:
    ```bash
    pip install -r requirements.txt
    ```
-3. Set up environment variables in `.env` file
-4. Start the services:
+
+4. Настройте окружение в файле `.env` (при необходимости).
+
+5. Включите Docker (запустите Docker Desktop) и поднимите необходимые сервисы:
    ```bash
    docker-compose up -d
    ```
-5. Run the application:
+
+6. Запустите сервер (приложение запуск через команду):
    ```bash
    uvicorn app.main:app --reload
    ```
+   После запуска приложение будет доступно по адресу: http://localhost:8000
+
 
 ## API Endpoints
 
