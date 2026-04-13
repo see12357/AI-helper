@@ -10,6 +10,14 @@ Educational RAG Assistant — система, которая помогает с
 
 ---
 
+## Для кого этот проект
+
+- Студенты технических вузов и колледжей
+- Преподаватели для автоматизации ответов на типовые вопросы
+- Исследователи в области искусственного интеллекта
+
+---
+
 ## Технологии
 
 | Технология | Описание |
@@ -40,7 +48,7 @@ Educational RAG Assistant — система, которая помогает с
 | Страница | Описание |
 |----------|----------|
 | [Руководство пользователя](USER_WIKI.md) | Как пользоваться интерфейсом и задавать вопросы |
-| [Установка и запуск](README.md#установка--запуск) | Инструкция по настройке проекта локально или через Docker |
+| [Установка и запуск](README.md#setup-установка--запуск) | Инструкция по настройке проекта локально или через Docker |
 | [FAQ](FAQ.md) | Ответы на частые вопросы и решение проблем |
 
 ---
@@ -60,83 +68,6 @@ educational-rag-assistant/
 ├── docker-compose.yml  # Конфигурация Docker
 └── requirements.txt    # Зависимости Python
 ```
-
----
-
-## Установка и запуск
-
-### Требования
-
-- Python 3.10+
-- Docker Desktop (для запуска через контейнеры)
-
-### Локальная установка
-
-1. Клонируйте репозиторий:
-   ```bash
-   git clone <URL>
-   cd educational-rag-assistant
-   ```
-
-2. Создайте и активируйте виртуальное окружение:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Для Mac/Linux
-   # Или для Windows: venv\Scripts\activate
-   ```
-
-3. Установите зависимости:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Настройте переменные окружения в файле `.env`:
-   ```bash
-   # API ключи и другие настройки
-   OLLAMA_API_KEY=your_api_key_here
-   POSTGRES_PASSWORD=your_password
-   QDRANT_API_KEY=your_api_key
-   ```
-
-5. Запустите Docker-сервисы (PostgreSQL, Qdrant):
-   ```bash
-   docker-compose up -d
-   ```
-
-6. Запустите сервер:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-
-Приложение доступно по адресу: http://localhost:8000
-
-### Запуск через Docker
-
-```bash
-docker-compose up --build
-```
-
----
-
-## API Endpoints
-
-### Documents
-- `POST /api/v1/documents/` - Upload and process a document
-- `GET /api/v1/documents/` - List all documents
-- `GET /api/v1/documents/{id}` - Get a specific document
-- `PUT /api/v1/documents/{id}` - Update a document
-- `DELETE /api/v1/documents/{id}` - Delete a document
-
-### Chat
-- `POST /api/v1/sessions/` - Create a new chat session
-- `GET /api/v1/sessions/` - List chat sessions
-- `GET /api/v1/sessions/{id}` - Get a specific chat session
-- `POST /api/v1/sessions/{session_id}/messages` - Add a message to a session
-- `POST /api/v1/query/` - Process a query with RAG
-
-### Health Check
-- `GET /` - Root endpoint
-- `GET /health` - Health check endpoint
 
 ---
 

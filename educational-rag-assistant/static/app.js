@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('register-form');
     const switchToRegister = document.getElementById('switch-to-register');
     const switchToLogin = document.getElementById('switch-to-login');
+    const authSwitchText = document.getElementById('auth-switch-text');
+    const authSwitchLogin = document.getElementById('auth-switch-login');
     
     function updateUserProfileUI(username) {
         if (username) {
@@ -51,6 +53,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (storedUser) {
         CURRENT_USER_ID = storedUser;
         updateUserProfileUI(storedUsername);
+    }
+
+    // --- State Caching ---
+    const CHAT_CACHE = {}; // chatId -> { html: '', title: '' }
+    
+    function saveCurrentChatState() {
+        if (CURRENT_CHAT_ID) {
+            CHAT_CACHE[CURRENT_CHAT_ID] = {
+                html: chatMessages.innerHTML,
+                title: document.querySelector('.chat-title').textContent
+            };
+        }
+    }
+    
+    function loadChatState(chatId) {
+        if (CHAT_CACHE[chatId]) {
+            CURRENT_CHAT_ID = chatId;
+            chatMessages.innerHTML = CHAT_CACHE[chatId].html;
+            document.querySelector('.chat-title').textContent = CHAT_CACHE[chatId].title;
+            
+            document.getElementById('pdf-viewer').classList.add('hidden');
+            document.getElementById('drop-zone').classList.remove('hidden');
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
     }
 
     // --- 1. Sidebar & Auth Management ---
@@ -105,6 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         loginForm.classList.add('hidden');
         registerForm.classList.remove('hidden');
+        authSwitchText.classList.add('hidden');
+        authSwitchLogin.classList.remove('hidden');
         document.getElementById('modal-title').textContent = "Регистрация";
     });
 
@@ -112,6 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         registerForm.classList.add('hidden');
         loginForm.classList.remove('hidden');
+        authSwitchLogin.classList.add('hidden');
+        authSwitchText.classList.remove('hidden');
         document.getElementById('modal-title').textContent = "Вход в систему";
     });
 
@@ -204,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function createNewChatSession() {
         if (!CURRENT_USER_ID) return;
         try {
+            saveCurrentChatState(); // Save state before wiping DOM
             const resp = await fetch('/api/chats/new', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -215,11 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await resp.json();
             CURRENT_CHAT_ID = data.id;
+            const localChatId = data.id; // copy for closure
+            
             chatMessages.innerHTML = '';
             addMessage("Контекст установлен. Какой у вас первый вопрос?", 'ai');
             document.querySelector('.chat-title').textContent = "Новая сессия";
             document.getElementById('pdf-viewer').classList.add('hidden');
             document.getElementById('drop-zone').classList.remove('hidden');
+            
+            // init local state
+            CHAT_CACHE[localChatId] = { html: chatMessages.innerHTML, title: "Новая сессия" };
             
             // Визуальный фидбэк для пользователя о том, что чат создан
             const historyList = document.querySelector('.history-list');
@@ -233,6 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.addEventListener('click', () => {
                     document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
                     item.classList.add('active');
+                    saveCurrentChatState(); // save whatever we were looking at
+                    loadChatState(localChatId); // restore this tab
                 });
                 historyList.prepend(item);
             }

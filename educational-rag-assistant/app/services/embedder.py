@@ -6,6 +6,7 @@ from qdrant_client import AsyncQdrantClient
 from qdrant_client.http.models import PointStruct
 import uuid
 import logging
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +17,14 @@ class EmbeddingService:
     """
     
     def __init__(self):
-        # We mock the initialization to prevent massive downloads during basic dev
-        # In actual deployment: self.model = SentenceTransformer("intfloat/multilingual-e5-large")
-        self.model = None
+        logger.info(f"Loading Embedding Model: {settings.EMBEDDER_MODEL_NAME}...")
+        self.model = SentenceTransformer(settings.EMBEDDER_MODEL_NAME)
+        logger.info("Embedding Model loaded successfully.")
         
         # Connect to async Qdrant client
-        # Replace with actual Qdrant URL/Cloud parameters
-        self.qdrant_client = AsyncQdrantClient(":memory:") 
-        self.collection_name = "educational_rag"
+        host = "localhost" if settings.QDRANT_HOST == "qdrant" else settings.QDRANT_HOST
+        self.qdrant_client = AsyncQdrantClient(host=host, port=settings.QDRANT_PORT) 
+        self.collection_name = settings.QDRANT_COLLECTION_NAME
         
         # We assume the collection has been created with proper vector size (1024 for e5-large).
         # We would create it if it didn't exist here.
@@ -56,15 +57,14 @@ class EmbeddingService:
         Returns:
             List[List[float]]: The corresponding vector embeddings.
         """
-        # Mock embedding logic for testing UI layout without models
         if hasattr(self, "model") and self.model is not None:
-            # E5 specifically requires 'query: ' or 'passage: ' prefixes but for general usage:
-            # prefixed_texts = ["passage: " + t for t in texts]
-            # return self.model.encode(prefixed_texts).tolist()
-            pass
+            # E5 specifically requires 'passage: ' prefixes for indexed documents
+            prefixed_texts = ["passage: " + t for t in texts]
+            # normalize_embeddings=True is recommended for e5 models for cosine similarity
+            return self.model.encode(prefixed_texts, normalize_embeddings=True).tolist()
             
-        # Return mock embeddings: typical e5-large vector is dimension 1024
-        return [[0.01 * j for j in range(1024)] for _ in texts]
+        # Fallback just in case
+        return [[0.01 * j for j in range(settings.EMBEDDING_DIMENSION)] for _ in texts]
 
     async def process_and_upsert(self, text: str, user_id: str, document_id: str) -> None:
         """
@@ -98,13 +98,16 @@ class EmbeddingService:
     async def _upsert_vectors(self, chunks: List[str], embeddings: List[List[float]], user_id: str, document_id: str) -> None:
         """
         Upserts vector points structure into the asynchronous Qdrant client.
-        
-        Args:
-            chunks (List[str]): Raw string chunks.
-            embeddings (List[List[float]]): Corresponding vectors.
-            user_id (str): Owner of the document.
-            document_id (str): Unique doc identifier.
         """
+        if not getattr(self, "_collection_checked", False):
+            if not await self.qdrant_client.collection_exists(self.collection_name):
+                from qdrant_client.models import Distance, VectorParams
+                await self.qdrant_client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=VectorParams(size=settings.EMBEDDING_DIMENSION, distance=Distance.COSINE),
+                )
+            self._collection_checked = True
+
         points = []
         for i, (chunk, vector) in enumerate(zip(chunks, embeddings)):
             point_id = str(uuid.uuid4())
