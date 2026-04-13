@@ -181,8 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem("username", data.username);
             
             authModal.classList.add('hidden');
-            headerSigninBtn.textContent = data.username;
             headerSigninBtn.classList.remove('pulse-on-upload');
+            updateUserProfileUI(data.username);
 
             await createNewChatSession();
         } catch (err) {
@@ -205,10 +205,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: CURRENT_USER_ID })
             });
+            if (!resp.ok) {
+                alert("Ошибка сервера при создании чата.");
+                return;
+            }
             const data = await resp.json();
             CURRENT_CHAT_ID = data.id;
             chatMessages.innerHTML = '';
             addMessage("Контекст установлен. Какой у вас первый вопрос?", 'ai');
+            document.querySelector('.chat-title').textContent = "Новая сессия";
+            document.getElementById('pdf-viewer').classList.add('hidden');
+            document.getElementById('drop-zone').classList.remove('hidden');
+            
+            // Визуальный фидбэк для пользователя о том, что чат создан
+            const historyList = document.querySelector('.history-list');
+            if (historyList) {
+                document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+                const item = document.createElement('div');
+                item.className = 'history-item active';
+                // Генерируем название с текущим временем чтобы было видно разницу
+                const timeStr = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                item.textContent = "Чат " + timeStr;
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                });
+                historyList.prepend(item);
+            }
         } catch (err) {
              console.error("Chat init failed", err);
         }
@@ -369,6 +392,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.querySelector('.chat-title').textContent = file.name;
             addMessage(`Я проанализировал документ <strong>${file.name}</strong> и сохранил его эмбеддинги (#${data.doc_id}). Теперь я готов отвечать на вопросы по его содержанию.`, 'ai');
+            
+            const historyList = document.querySelector('.history-list');
+            if (historyList) {
+                document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+                const item = document.createElement('div');
+                item.className = 'history-item active';
+                item.textContent = file.name;
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                    document.getElementById('pdf-viewer').classList.remove('hidden');
+                    document.querySelector('.chat-title').textContent = file.name;
+                });
+                historyList.prepend(item);
+            }
         } catch (error) {
              document.querySelector('.chat-title').textContent = "Upload Failed";
              alert("File upload failed: " + error.message);
@@ -382,5 +420,57 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('drop-zone').classList.add('empty');
             document.querySelector('.chat-title').textContent = "Новая сессия";
         });
+    }
+
+    // --- 5. Additional UI Bindings ---
+    // File input browse logic
+    const browseBtn = document.querySelector('.browse-btn');
+    const fileUploadInput = document.getElementById('file-upload-input');
+    if (browseBtn && fileUploadInput) {
+        browseBtn.addEventListener('click', () => {
+            fileUploadInput.click();
+        });
+        
+        fileUploadInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) handleFileUpload(files[0]);
+        });
+    }
+
+    // Toggle split screen logic
+    const toggleSplitBtn = document.getElementById('toggle-split-btn');
+    const contentSplit = document.querySelector('.content-split');
+    if (toggleSplitBtn && contentSplit) {
+        toggleSplitBtn.addEventListener('click', () => {
+            contentSplit.classList.toggle('viewer-collapsed');
+        });
+    }
+
+    // PDF Zoom Logic
+    const zoomInBtn = document.getElementById('zoom-in');
+    const zoomOutBtn = document.getElementById('zoom-out');
+    const zoomLevelEl = document.querySelector('.zoom-level');
+    const pdfRenderCanvas = document.getElementById('pdf-render-canvas');
+    let currentZoom = 100;
+    
+    if (zoomInBtn && zoomOutBtn && zoomLevelEl && pdfRenderCanvas) {
+        zoomInBtn.addEventListener('click', () => {
+            if (currentZoom < 300) {
+                currentZoom += 25;
+                updateZoom();
+            }
+        });
+        zoomOutBtn.addEventListener('click', () => {
+            if (currentZoom > 50) {
+                currentZoom -= 25;
+                updateZoom();
+            }
+        });
+        
+        function updateZoom() {
+            zoomLevelEl.textContent = `${currentZoom}%`;
+            pdfRenderCanvas.style.transform = `scale(${currentZoom / 100})`;
+            pdfRenderCanvas.style.transformOrigin = 'top center';
+        }
     }
 });

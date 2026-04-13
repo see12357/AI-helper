@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     # Embedder Settings
     EMBEDDER_MODEL_NAME: str = "intfloat/e5-large-v2"
     EMBEDDER_MODEL_PATH: str = "./local_models/e5-large"
-    EMBEDDING_DIMENSION: int = 1024
-    
+    EMBEDDING_DIMENSION: int = 768
+
     # RAG Settings
     CHUNK_SIZE: int = 1000
     CHUNK_OVERLAP: int = 200

@@ -12,7 +12,7 @@ from app.schemas import UploadResponse, ChatRequest, UserAuth, UserResponse, Cha
 from app.services.processor import processor_service
 from app.services.embedder import embedder_service
 from app.services.llm_service import llm_service
-from app.db.session import engine, Base, get_db
+from app.db.session import engine, Base, get_db, AsyncSessionLocal
 from app.db.models import User, Chat, Message, Document
 
 app = FastAPI(

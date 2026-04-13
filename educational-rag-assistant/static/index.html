@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
     <div id="app-container" class="app-layout">
@@ -28,8 +28,7 @@
                     <span class="new-chat-text">Новый чат</span>
                 </button>
                 <div class="history-list">
-                    <div class="history-item active">Основы квантовой физики</div>
-                    <div class="history-item">Биология клетки: конспект</div>
+                    <!-- Загруженные в этой сессии файлы появятся здесь -->
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -113,6 +112,7 @@
                         <div class="drop-zone-content">
                            <h3>Библиотека знаний</h3>
                            <p>Перетащите PDF или изображения сюда</p>
+                           <input type="file" id="file-upload-input" class="hidden" accept=".pdf,image/png,image/jpeg">
                            <button class="browse-btn">Выбрать файл</button>
                         </div>
                     </div>
@@ -205,6 +205,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>

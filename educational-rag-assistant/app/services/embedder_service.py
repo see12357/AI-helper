@@ -1,6 +1,7 @@
 import logging
 from typing import List, Union
 import numpy as np
+from sentence_transformers import SentenceTransformer
 from app.core.exceptions import EmbedderException
 from app.core.config import settings
 
@@ -15,12 +16,9 @@ class EmbedderService:
     def _load_model(self):
         """Load the E5-large embedding model"""
         try:
-            # TODO: Implement actual E5-large model loading
-            # For now, we'll simulate the model loading
             logger.info(f"Loading E5-large embedder model: {self.model_name}")
-            # In a real implementation, you would load the model here
-            # Example: self.model = SentenceTransformer(self.model_name)
-            self.model = "simulated_model"  # Placeholder
+            # Use SentenceTransformer with path or name
+            self.model = SentenceTransformer(settings.EMBEDDER_MODEL_PATH)
             logger.info("E5-large embedder model loaded successfully")
         except Exception as e:
             logger.error(f"Failed to load E5-large embedder model: {str(e)}")
@@ -46,23 +44,11 @@ class EmbedderService:
             
             logger.info(f"Encoding {len(texts)} text(s)")
             
-            # TODO: Implement actual text encoding
-            # For now, we'll simulate the encoding
-            # In a real implementation, you would use the model to encode text
-            # Example: embeddings = self.model.encode(texts)
-            
-            # Simulate embeddings (768-dimensional for E5-large)
-            embeddings = []
-            for text in texts:
-                # Generate deterministic but varied embeddings based on text hash
-                import hashlib
-                text_hash = hashlib.md5(text.encode()).hexdigest()
-                # Use hash to generate consistent pseudo-random values
-                seed = int(text_hash[:8], 16)
-                np.random.seed(seed)
-                embedding = np.random.rand(768).tolist()  # E5-large produces 768-dim embeddings
-                embeddings.append(embedding)
-            
+            # Use actual model to encode texts
+            # self.model.encode returns numpy array of shape (n, dim)
+            embedding_np = self.model.encode(texts)  # List[List[float]]
+            embeddings = embedding_np.tolist()
+
             logger.info(f"Text encoding completed. Generated {len(embeddings)} embeddings")
             return embeddings
             
