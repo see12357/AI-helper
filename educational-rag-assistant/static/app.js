@@ -192,9 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 2. Chat Session Setup ---
-    clearContextBtn.addEventListener('click', async () => {
+    clearContextBtn.addEventListener('click', () => {
         if (!CURRENT_USER_ID) return alert("Пожалуйста, сначала войдите в систему.");
-        await createNewChatSession();
+        chatMessages.innerHTML = '';
+        addMessage("Интерфейс очищен. Какой у вас вопрос?", 'ai');
+        document.getElementById('pdf-viewer').classList.add('hidden');
+        document.getElementById('drop-zone').classList.remove('hidden');
+        document.querySelector('.chat-title').textContent = "Новая сессия";
     });
 
     async function createNewChatSession() {
