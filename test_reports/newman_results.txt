@@ -1,0 +1,63 @@
+newman
+
+Educational RAG Assistant API Smoke Tests
+
+→ GET Swagger UI
+  GET http://127.0.0.1:8015/docs [200 OK, 1.16kB, 23ms]
+  ✓  Swagger UI is available
+
+→ GET Main Page
+  GET http://127.0.0.1:8015/ [200 OK, 12.53kB, 10ms]
+  ✓  Static main page is returned
+
+→ POST Register User
+  POST http://127.0.0.1:8015/api/users/register [200 OK, 206B, 30ms]
+  ✓  User registration succeeds
+
+→ POST Duplicate Register Fails
+  POST http://127.0.0.1:8015/api/users/register [400 Bad Request, 174B, 7ms]
+  ✓  Duplicate username is rejected
+
+→ POST Login User
+  POST http://127.0.0.1:8015/api/users/login [200 OK, 206B, 15ms]
+  ✓  Login succeeds with correct credentials
+
+→ POST Login Wrong Password Fails
+  POST http://127.0.0.1:8015/api/users/login [400 Bad Request, 177B, 10ms]
+  ✓  Wrong password is rejected
+
+→ POST Create Chat
+  POST http://127.0.0.1:8015/api/chats/new [200 OK, 247B, 19ms]
+  ✓  Chat session is created
+
+→ POST Upload Invalid Format
+  POST http://127.0.0.1:8015/api/upload [400 Bad Request, 166B, 6ms]
+  ✓  Unsupported file format is rejected
+
+→ POST Upload PDF
+  POST http://127.0.0.1:8015/api/upload [200 OK, 193B, 717ms]
+  ✓  PDF upload and indexing succeeds
+
+→ POST Chat Stream
+  POST http://127.0.0.1:8015/api/chat [200 OK, 4.27kB, 13.8s]
+  ✓  Chat endpoint returns SSE stream
+
+┌─────────────────────────┬────────────────────┬───────────────────┐
+│                         │           executed │            failed │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│              iterations │                  1 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│                requests │                 10 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│            test-scripts │                 10 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│      prerequest-scripts │                 10 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│              assertions │                 10 │                 0 │
+├─────────────────────────┴────────────────────┴───────────────────┤
+│ total run duration: 14.8s                                        │
+├──────────────────────────────────────────────────────────────────┤
+│ total data received: 17.9kB (approx)                             │
+├──────────────────────────────────────────────────────────────────┤
+│ average response time: 1471ms [min: 6ms, max: 13.8s, s.d.: 4.1s] │
+└──────────────────────────────────────────────────────────────────┘

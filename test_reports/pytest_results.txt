@@ -1,0 +1,32 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- /Library/Frameworks/Python.framework/Versions/3.11/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /Users/danilaganits/PycharmProjects/AI-helper
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 9 items
+
+tests/test_backend_units.py::test_document_processor_rejects_unsupported_mime_type PASSED [ 11%]
+tests/test_backend_units.py::test_document_processor_extracts_text_from_pdf_fixture PASSED [ 22%]
+tests/test_backend_units.py::test_vector_store_rejects_payload_count_mismatch PASSED [ 33%]
+tests/test_backend_units.py::test_vector_store_generates_ids_for_valid_vectors PASSED [ 44%]
+tests/test_ui_ux.py::UiUxRequirementsTest::test_file_upload_supports_button_and_drag_drop PASSED [ 55%]
+tests/test_ui_ux.py::UiUxRequirementsTest::test_file_upload_validates_formats_and_requires_login PASSED [ 66%]
+tests/test_ui_ux.py::UiUxRequirementsTest::test_mobile_layout_has_adaptive_breakpoints PASSED [ 77%]
+tests/test_ui_ux.py::UiUxRequirementsTest::test_split_screen_toggle_is_available_and_collapses_viewer PASSED [ 88%]
+tests/test_ui_ux.py::UiUxRequirementsTest::test_upload_flow_gives_clear_visual_feedback PASSED [100%]
+
+=============================== warnings summary ===============================
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 9 passed, 5 warnings in 0.29s =========================

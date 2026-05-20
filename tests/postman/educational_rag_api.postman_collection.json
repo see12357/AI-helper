@@ -1,0 +1,367 @@
+{
+  "info": {
+    "name": "Educational RAG Assistant API Smoke Tests",
+    "_postman_id": "a68f7625-8993-4701-9a92-educational-rag",
+    "description": "Smoke and functional API checks for Practical Work 11.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('username')) {",
+          "  pm.collectionVariables.set('username', 'api_test_' + Date.now());",
+          "}",
+          "if (!pm.collectionVariables.get('password')) {",
+          "  pm.collectionVariables.set('password', 'pass12345');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8015"
+    },
+    {
+      "key": "username",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "chat_id",
+      "value": ""
+    },
+    {
+      "key": "doc_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "GET Swagger UI",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/docs"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Swagger UI is available', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('SwaggerUIBundle');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET Main Page",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Static main page is returned', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('Educational RAG Assistant');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{username}}\",\"password\":\"{{password}}\"}"
+        },
+        "url": "{{base_url}}/api/users/register"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('User registration succeeds', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('id');",
+              "  pm.expect(body.username).to.eql(pm.collectionVariables.get('username'));",
+              "  pm.collectionVariables.set('user_id', body.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Duplicate Register Fails",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{username}}\",\"password\":\"{{password}}\"}"
+        },
+        "url": "{{base_url}}/api/users/register"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate username is rejected', function () {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().detail).to.include('Username already registered');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Login User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{username}}\",\"password\":\"{{password}}\"}"
+        },
+        "url": "{{base_url}}/api/users/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login succeeds with correct credentials', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.eql(pm.collectionVariables.get('user_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Login Wrong Password Fails",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"{{username}}\",\"password\":\"wrong-password\"}"
+        },
+        "url": "{{base_url}}/api/users/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Wrong password is rejected', function () {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().detail).to.include('Incorrect username or password');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Create Chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_id\":\"{{user_id}}\"}"
+        },
+        "url": "{{base_url}}/api/chats/new"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Chat session is created', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('id');",
+              "  pm.expect(body.title).to.eql('Новая сессия');",
+              "  pm.collectionVariables.set('chat_id', body.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Upload Invalid Format",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "user_id",
+              "value": "{{user_id}}",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": "tests/fixtures/invalid_upload.exe",
+              "contentType": "application/octet-stream"
+            }
+          ]
+        },
+        "url": "{{base_url}}/api/upload"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unsupported file format is rejected', function () {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().detail).to.include('Unsupported format');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Upload PDF",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "user_id",
+              "value": "{{user_id}}",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": "tests/fixtures/sample_upload.pdf",
+              "contentType": "application/pdf"
+            }
+          ]
+        },
+        "url": "{{base_url}}/api/upload"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('PDF upload and indexing succeeds', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql('success');",
+              "  pm.expect(body).to.have.property('doc_id');",
+              "  pm.collectionVariables.set('doc_id', body.doc_id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Chat Stream",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"Кратко объясни назначение загруженного тестового документа\",\"level\":\"beginner\",\"chat_id\":\"{{chat_id}}\",\"user_id\":\"{{user_id}}\"}"
+        },
+        "url": "{{base_url}}/api/chat"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Chat endpoint returns SSE stream', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const text = pm.response.text();",
+              "  pm.expect(text).to.include('data:');",
+              "  pm.expect(text).to.include('chunk');",
+              "  pm.expect(text).not.to.include('error');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

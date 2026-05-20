@@ -9,32 +9,44 @@ logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
-        # Hardcoded to match requirements
-        self.model_name = "gemini-3-flash-preview:cloud"
-        self.base_url = "http://localhost:11434"
+        self.model_name = settings.OLLAMA_MODEL
+        self.base_url = settings.OLLAMA_BASE_URL.rstrip("/")
         self.api_generate_url = f"{self.base_url}/api/generate"
-        self.client = httpx.AsyncClient(timeout=60.0)
+        self.client = httpx.AsyncClient(timeout=settings.OLLAMA_TIMEOUT_SECONDS)
+
+    def _prepare_prompt(self, prompt: str, context: Optional[List[str]] = None) -> str:
+        full_prompt = prompt
+        if context:
+            context_text = "\n\n".join(context)
+            full_prompt = f"Context:\n{context_text}\n\nQuestion: {prompt}"
+
+        if self.model_name.lower().startswith("qwen"):
+            return f"/no_think\n{full_prompt}"
+
+        return full_prompt
     
     async def generate_response(self, prompt: str, context: Optional[List[str]] = None, 
-                         temperature: float = 0.7, max_tokens: int = 500) -> str:
+                         temperature: float = 0.7, max_tokens: int | None = None) -> str:
         """
         Generate a non-streaming response using the local Ollama API
         """
         try:
-            full_prompt = prompt
-            if context:
-                context_text = "\n\n".join(context)
-                full_prompt = f"Context:\n{context_text}\n\nQuestion: {prompt}"
+            full_prompt = self._prepare_prompt(prompt, context)
             
-            logger.info(f"Generating block response with Ollama model '{self.model_name}' on localhost")
+            logger.info(
+                "Generating block response with Ollama model '%s' at %s",
+                self.model_name,
+                self.base_url,
+            )
             
             payload = {
                 "model": self.model_name,
                 "prompt": full_prompt,
                 "stream": False,
+                "think": False,
                 "options": {
                     "temperature": temperature,
-                    "num_predict": max_tokens
+                    "num_predict": max_tokens or settings.OLLAMA_MAX_TOKENS
                 }
             }
             
@@ -49,24 +61,26 @@ class LLMService:
             raise LLMException(f"LLM response generation failed: {str(e)}")
     
     async def generate_streaming_response(self, prompt: str, context: Optional[List[str]] = None,
-                                  temperature: float = 0.7, max_tokens: int = 500) -> AsyncGenerator[str, None]:
+                                  temperature: float = 0.7, max_tokens: int | None = None) -> AsyncGenerator[str, None]:
         """
         Generate an asynchronous streaming response using the local Ollama API
         """
-        full_prompt = prompt
-        if context:
-            context_text = "\n\n".join(context)
-            full_prompt = f"Context:\n{context_text}\n\nQuestion: {prompt}"
+        full_prompt = self._prepare_prompt(prompt, context)
         
-        logger.info(f"Generating streaming response with Ollama model '{self.model_name}' on localhost")
+        logger.info(
+            "Generating streaming response with Ollama model '%s' at %s",
+            self.model_name,
+            self.base_url,
+        )
         
         payload = {
             "model": self.model_name,
             "prompt": full_prompt,
             "stream": True,
+            "think": False,
             "options": {
                 "temperature": temperature,
-                "num_predict": max_tokens
+                "num_predict": max_tokens or settings.OLLAMA_MAX_TOKENS
             }
         }
         
@@ -91,7 +105,7 @@ class LLMService:
                         logger.warning(f"Failed to decode JSON from Ollama stream line: {line}")
                         
         except Exception as e:
-            logger.error(f"Failed to stream from Ollama API on localhost: {str(e)}")
+            logger.error("Failed to stream from Ollama API at %s: %s", self.base_url, str(e))
             raise LLMException(f"Streaming LLM response generation failed: {str(e)}")
             
     async def is_available(self) -> bool:

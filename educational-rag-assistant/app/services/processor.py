@@ -1,6 +1,7 @@
 import asyncio
 import io
 import fitz  # PyMuPDF
+import subprocess
 from typing import List, Optional
 import traceback
 import logging
@@ -88,7 +89,29 @@ class DocumentProcessor:
             str: Extracted text from the OCR model.
         """
         try:
+            result = subprocess.run(
+                ["tesseract", "stdin", "stdout", "-l", "rus+eng", "--psm", "6"],
+                input=file_bytes,
+                capture_output=True,
+                check=False,
+                timeout=30,
+            )
+            text = result.stdout.decode("utf-8", errors="ignore").strip()
+            if text:
+                return text
+
+            error_text = result.stderr.decode("utf-8", errors="ignore").strip()
+            logger.warning("Tesseract did not extract image text: %s", error_text)
+            return (
+                "Текст на изображении не распознан автоматически. "
+                "Возможно, изображение содержит схему без OCR-читаемых подписей или требует визуальной модели."
+            )
+        except FileNotFoundError:
+            logger.warning("Tesseract is not installed; falling back to simulated OCR.")
             return self._simulate_glm_ocr(file_bytes)
+        except subprocess.TimeoutExpired:
+            logger.warning("Tesseract OCR timed out.")
+            return "OCR изображения превысил лимит времени, текст не был извлечен."
         except Exception as e:
             logger.error(f"Failed to process Image: {str(e)}")
             raise ValueError(f"Failed to process Image document: {str(e)}")

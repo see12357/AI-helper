@@ -28,12 +28,12 @@ class VectorStoreService:
             logger.error(f"Failed to initialize Qdrant client: {str(e)}")
             raise VectorStoreException(f"Failed to initialize vector store: {str(e)}")
     
-    def create_collection(self, vector_size: int = 768) -> bool:
+    def create_collection(self, vector_size: int = settings.EMBEDDING_DIMENSION) -> bool:
         """
         Create a collection for storing vectors
         
         Args:
-            vector_size: Dimension of the vectors (default: 768 for E5-large)
+            vector_size: Dimension of the vectors.
             
         Returns:
             True if collection created successfully, False otherwise

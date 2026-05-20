@@ -42,16 +42,19 @@ class Settings(BaseSettings):
     # Embedder Settings
     EMBEDDER_MODEL_NAME: str = "intfloat/e5-large-v2"
     EMBEDDER_MODEL_PATH: str = "./local_models/e5-large"
-    EMBEDDING_DIMENSION: int = 768
+    EMBEDDING_DIMENSION: int = 1024
 
     # RAG Settings
     CHUNK_SIZE: int = 1000
     CHUNK_OVERLAP: int = 200
     TOP_K_RESULTS: int = 5
     
-    # Ollama Cloud
+    # Ollama
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_API_KEY: Optional[str] = None
     OLLAMA_MODEL: str = "llama2"
+    OLLAMA_MAX_TOKENS: int = 2048
+    OLLAMA_TIMEOUT_SECONDS: float = 180.0
     
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
